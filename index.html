@@ -64,14 +64,21 @@
         }
 
         .mapboxgl-popup-content {
-            padding: 10px !important;
             scroll-behavior: auto;
+            overflow: auto;
+            /* Adjust content overflow as needed */
+            resize: both;
+            /* Enable resizing in both directions */
+            min-width: 200px;
+            /* Minimum width */
+            min-height: 100px;
+            /* Minimum height */
+            max-width: none;
+            /* Remove maximum width restriction */
+            max-height: none;
+            /* Remove maximum width restriction */
         }
 
-        .mapboxgl-popup {
-            max-width: 400px !important;
-            scroll-behavior: auto;
-        }
 
         @media only screen and (max-width: 600px) {
 
@@ -79,27 +86,29 @@
             .mapboxgl-popup {
                 display: flex;
                 flex-direction: column;
-                width: 175px;
-                /* Set a fixed width or max-width as needed */
-                max-height: 180px !important;
-                /* Set a max-height to make it smaller */
                 overflow: auto;
                 /* Add scrolling if content is larger than the pop-up */
+                max-width: none;
+                /* Remove maximum width restriction */
             }
 
-            .mapboxgl-popup-content,
-            .popup-content-details {
-                max-width: 100%;
-                /* Ensure content does not exceed the container width */
-                overflow-x: hidden;
-                /* Hide horizontal overflow */
-                word-wrap: break-word;
-                /* Ensure long words do not cause overflow */
+            .mapboxgl-popup-content {
+                overflow: auto;
+                /* Adjust content overflow as needed */
+                resize: both;
+                /* Enable resizing in both directions */
+                min-width: 200px;
+                /* Minimum width */
+                min-height: 100px;
+                /* Minimum height */
+                max-width: none;
+                /* Remove maximum width restriction */
             }
+
 
             /* Additionally, if there are specific elements within your popups that cause horizontal scrolling, target them with a similar approach */
             .custom-popup-element {
-                max-width: 100%;
+                max-width: none;
                 overflow-x: hidden;
             }
 
@@ -112,9 +121,10 @@
             display: flex;
             flex-direction: column;
             height: 400px;
-            /* or whatever fixed height you want */
+            /* Set the initial fixed height */
             position: relative;
             scroll-behavior: auto;
+            max-width: none;
         }
 
         .popup-flex-container input[type="text"] {
@@ -129,8 +139,6 @@
         .popup-content-details {
             flex: 1 1 auto;
             overflow: scroll;
-            height: 250px;
-            /* or whatever value that works for you */
             scroll-behavior: auto;
         }
 
@@ -144,24 +152,6 @@
 
         #feature-listing {
             overflow: auto;
-            max-height: calc(100% - 50px);
-            /* Adjusts for the height of the search input */
-        }
-
-        .custom-popup {
-            max-width: 300px !important;
-            /* Set a fixed height and make content scrollable */
-            max-height: 500px;
-            overflow-y: hidden;
-            scroll-behavior: auto;
-            text-align: left;
-        }
-
-        .custom-popup .your-inner-container {
-            max-height: 400px;
-            overflow-y: scroll;
-            scroll-behavior: auto;
-            text-align: left;
         }
 
         .collapsible {
@@ -270,9 +260,7 @@
             display: block;
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
-            left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             font-size: 20px;
             color: #666;
             line-height: 1;
@@ -326,6 +314,38 @@
             /* This adds space between list items */
             text-align: left;
             /* Ensures text is aligned to the left */
+        }
+
+        .popup-resize-handle {
+            position: absolute;
+            top: 0.5;
+            /* Position it at the top of the popup */
+            right: 0;
+            /* Position it at the right of the popup */
+            width: 20px;
+            height: 20px;
+            cursor: nwse-resize;
+            background: rgba(0, 0, 0, 0.3);
+            /* Visible handle */
+        }
+
+
+        .mapboxgl-popup-content {
+            padding-top: 20px;
+            /* Make sure this is at least as tall as the resize handle */
+            padding-right: 20px;
+            /* Make sure this is at least as wide as the resize handle */
+
+            overflow: auto;
+            /* Adjust content overflow as needed */
+            resize: both;
+            /* Enable resizing in both directions */
+            min-width: 200px;
+            /* Minimum width */
+            min-height: 100px;
+            /* Minimum height */
+            max-width: none;
+            /* Remove maximum width restriction */
         }
     </style>
 </head>
@@ -428,6 +448,7 @@
 
         const dragHandle = document.getElementById('drag-handle');
         const sidebar = document.getElementById('sidebar');
+
         let isDragging = false;
 
 
@@ -486,48 +507,73 @@
 
 
         dragHandle.addEventListener('mousedown', function (e) {
+            // Start dragging
             isDragging = true;
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
             e.preventDefault(); // Prevent text selection during drag
-            map.resize();
-
         });
 
         function onMouseUp() {
+            // Stop dragging
             isDragging = false;
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-
-            // Assuming your map instance is named 'map'
-            map.resize(); // This recalculates the map size
         }
 
 
         function onMouseMove(e) {
-            if (isDragging) {
-                const sidebarWidth = e.clientX; // Get the new sidebar width based on cursor position
-                const mapContainer = document.getElementById('map'); // Assuming your map container has the ID 'map'
+            if (!isDragging) return;
 
-                // Update sidebar width and ensure the right border is maintained
-                sidebar.style.width = `${sidebarWidth}px`;
-                // No need to explicitly set the border if it's already defined in your CSS and not removed by this script
+            const newWidth = e.clientX; // Get the new width based on the cursor position
 
-                // Update drag handle position
-                dragHandle.style.left = `${sidebarWidth}px`;
+            // Update sidebar width
+            sidebar.style.width = `${newWidth}px`;
 
-                // Calculate and update the map container's left margin to accommodate the new sidebar width
-                mapContainer.style.left = `${sidebarWidth}px`;
-
-                sidebar.style.borderRight = '1px solid #ddd';
-
-                // Ensure the map adjusts to the new layout
-                map.resize(); // This calls the Mapbox GL JS map.resize() method to adjust the map's size
-            }
+            // Ensure drag handle moves with the sidebar's right edge
+            dragHandle.style.left = `${newWidth - dragHandle.offsetWidth}px`; // Adjust this calculation based on your actual HTML/CSS setup
         }
 
+        function makePopupDraggable(popupElement) {
+            const popupResizeHandle = document.createElement('div');
+            popupResizeHandle.className = 'popup-resize-handle';
+            popupElement.appendChild(popupResizeHandle);
 
+            let isResizingPopup = false;
+            let startX, startY, startWidth, startHeight;
 
+            const startResizingPopup = (e) => {
+                isResizingPopup = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(document.defaultView.getComputedStyle(popupElement).width, 10);
+                startHeight = parseInt(document.defaultView.getComputedStyle(popupElement).height, 10);
+                e.preventDefault(); // Prevent default dragging behavior
+            };
+
+            const resizePopup = (e) => {
+                if (!isResizingPopup) return;
+
+                let width = startWidth + e.clientX - startX;
+                let height = startHeight + e.clientY - startY;
+
+                // Set minimum size constraints
+                width = Math.max(width, 1000); // Adjust minimum width as needed
+                height = Math.max(height, 400);
+
+                // Update the size of the popup
+                popupElement.style.width = `${width}px`;
+                popupElement.style.height = `${height}px`;
+            };
+
+            const stopResizingPopup = () => {
+                isResizingPopup = true;
+            };
+
+            popupResizeHandle.addEventListener('mousedown', startResizingPopup);
+            document.addEventListener('mousemove', resizePopup);
+            document.addEventListener('mouseup', stopResizingPopup);
+        }
 
 
 
@@ -1075,6 +1121,22 @@
             </div>
         `;
 
+                // Inside your map click event listener for taxonomy markers...
+                if (taxonomy) {
+                    const popupContent = document.createElement('div');
+                    // ... (your existing popup content HTML setup)
+
+                    // Append your popup content here, just like you did before
+
+                    // Then call the makePopupDraggable function on the newly created content
+                    makePopupDraggable(popupContent);
+
+                    // Continue with setting up and showing your popup...
+                    popup.setLngLat(e.lngLat)
+                        .setDOMContent(popupContent)
+                        .addTo(map);
+                }
+
                 // Create the popup without focus on the input field
                 popup.setLngLat(e.lngLat)
                     .setDOMContent(popupContent)
@@ -1153,7 +1215,6 @@
                     renderListings(features);
                 }
             });
-
 
 
         });
