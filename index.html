@@ -347,6 +347,21 @@
             max-width: none;
             /* Remove maximum width restriction */
         }
+
+        .expand-all-btn,
+        .collapse-all-btn {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .expand-all-btn:hover,
+        .collapse-all-btn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -423,7 +438,7 @@
         document.getElementById('filter-dropdown').addEventListener('change', function () {
             const selectedCategory = this.value;
             const resultsContainer = document.getElementById('results-container');
-            resultsContainer.innerHTML = '';
+            resultsContainer.innerHTML = ''; // Clear previous results
 
             esgTaxonomies.forEach(taxonomy => {
                 if (taxonomy[selectedCategory]) {
@@ -434,12 +449,25 @@
                     countryNameSpan.classList.add('country-name');
                     countryNameSpan.textContent = taxonomy.country + ':';
 
-                    const countryDetailsSpan = document.createElement('span');
-                    countryDetailsSpan.classList.add('country-details');
-                    countryDetailsSpan.innerHTML = taxonomy[selectedCategory];
+                    let detailElement; // This will either be a link or a text span
 
+                    // Check if the content starts with 'https://'
+                    if (taxonomy[selectedCategory].startsWith('https://')) {
+                        // Create an anchor element for the hyperlink
+                        detailElement = document.createElement('a');
+                        detailElement.href = taxonomy[selectedCategory]; // Set the URL
+                        detailElement.target = '_blank'; // Open in a new tab
+                    } else {
+                        // Create a span for plain text
+                        detailElement = document.createElement('span');
+                    }
+
+                    detailElement.classList.add('country-details');
+                    detailElement.textContent = taxonomy[selectedCategory]; // Text to display
+
+                    // Append the new elements to the resultItem, then to the resultsContainer
                     resultItem.appendChild(countryNameSpan);
-                    resultItem.appendChild(countryDetailsSpan);
+                    resultItem.appendChild(detailElement);
 
                     resultsContainer.appendChild(resultItem);
                 }
@@ -534,6 +562,8 @@
             dragHandle.style.left = `${newWidth - dragHandle.offsetWidth}px`; // Adjust this calculation based on your actual HTML/CSS setup
         }
 
+
+
         function makePopupDraggable(popupElement) {
             const popupResizeHandle = document.createElement('div');
             popupResizeHandle.className = 'popup-resize-handle';
@@ -575,9 +605,6 @@
             document.addEventListener('mouseup', stopResizingPopup);
         }
 
-
-
-
         function normalize(string) {
             return string.trim().toLowerCase();
         }
@@ -600,6 +627,7 @@
             const newText = content.replace(new RegExp(`(${term})`, 'ig'), `${highlightStartTag}$1${highlightEndTag}`);
             return newText;
         }
+
         function filterPopupContent(inputElement) {
             const searchValue = inputElement.value.toLowerCase();
             const contentDiv = inputElement.nextElementSibling;
@@ -965,15 +993,17 @@
         map.on('click', 'taxonomy-markers', (e) => {
             const taxonomyName = e.features[0].properties.name;
             const taxonomy = esgTaxonomies.find(item => item.name === taxonomyName);
-            if (taxonomy) {
-                const popupContent = document.createElement('div');
-                popupContent.innerHTML = `
+            if (!taxonomy) return;
+            const popupContent = document.createElement('div');
+            popupContent.innerHTML = `
             <div class="popup-flex-container">
                 <input type="text" onkeyup="filterPopupContent(this)" placeholder="Search...">
                 <div class="popup-content-details">
                     <strong>Country:</strong> <span class="popup-text">${taxonomy.country}</span><br><br>
                     <strong>Year Initiated:</strong> <span class="popup-text">${taxonomy.yearinitiated}</span><br><br>
                     <strong>Link:</strong> <a href="${taxonomy.link}" target="_blank" class="popup-text">${taxonomy.link}</a><br><br>
+                    <button id="expand-all">Expand All</button>
+                    <button id="collapse-all">Collapse All</button><br><br>
                     <div class="collapsible">
                         <div class="collapsible-header">
                             <span>Mandated in Law or Voluntary</span>
@@ -1120,56 +1150,43 @@
                 </div>
             </div>
         `;
+            // Immediately append popupContent to the popup to ensure it's part of the DOM
+            const popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: true
+            })
+                .setLngLat(e.lngLat)
+                .setDOMContent(popupContent)
+                .addTo(map);
 
-                // Inside your map click event listener for taxonomy markers...
-                if (taxonomy) {
-                    const popupContent = document.createElement('div');
-                    // ... (your existing popup content HTML setup)
-
-                    // Append your popup content here, just like you did before
-
-                    // Then call the makePopupDraggable function on the newly created content
-                    makePopupDraggable(popupContent);
-
-                    // Continue with setting up and showing your popup...
-                    popup.setLngLat(e.lngLat)
-                        .setDOMContent(popupContent)
-                        .addTo(map);
-                }
-
-                // Create the popup without focus on the input field
-                popup.setLngLat(e.lngLat)
-                    .setDOMContent(popupContent)
-                    .addTo(map);
-                e.preventDefault();
-
-                // Use setTimeout to defer the operation until after the popup is shown
-                setTimeout(() => {
-                    const inputElement = popupContent.querySelector('input[type="text"]');
-                    if (inputElement) {
-                        inputElement.blur(); // Remove focus from the input element
-                    }
-                }, 10);
-
-                popup.setLngLat(e.lngLat)
-                    .setDOMContent(popupContent)
-                    .addTo(map);
-                e.preventDefault();
-
-                setTimeout(() => {
-                    popupContent.scrollTop = 0;
-                }, 100);
-
-                document.querySelectorAll('.collapsible-header').forEach(header => {
-                    header.addEventListener('click', function () {
-                        this.nextElementSibling.style.display =
-                            this.nextElementSibling.style.display === 'block' ? 'none' : 'block';
-                        this.querySelector('.collapsible-arrow').textContent =
-                            this.nextElementSibling.style.display === 'block' ? '►' : '▼';
-                    });
-                });
-            }
+            // After the popup is added to the map, find and setup the buttons
+            setupPopupButtons(popupContent);
         });
+
+        // Function to setup event listeners for the "Expand All" and "Collapse All" buttons within the popup
+        function setupPopupButtons(popupContent) {
+            const expandAllBtn = popupContent.querySelector('#expand-all');
+            const collapseAllBtn = popupContent.querySelector('#collapse-all');
+
+            expandAllBtn.addEventListener('click', function () {
+                toggleCollapsible(popupContent, true); // Expand all
+            });
+
+            collapseAllBtn.addEventListener('click', function () {
+                toggleCollapsible(popupContent, false); // Collapse all
+            });
+        }
+
+        // Function to toggle the display of collapsible content
+        function toggleCollapsible(popupContent, expand) {
+            const collapsibles = popupContent.querySelectorAll('.collapsible-content');
+            collapsibles.forEach(collapsible => {
+                collapsible.style.display = expand ? 'block' : 'none';
+                // Also, you might want to adjust the arrow symbol or class based on expand/collapse
+            });
+        }
+
+        // Note: Ensure the function 'filterPopupContent' is defined elsewhere in your code to handle the input search functionality.
 
 
         map.on('load', () => {
@@ -1218,4 +1235,29 @@
 
 
         });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Assuming there are buttons with IDs 'expand-all' and 'collapse-all'
+            const expandAllButton = document.getElementById('expand-all');
+            const collapseAllButton = document.getElementById('collapse-all');
+
+            // Function to expand all collapsible elements
+            function expandAll() {
+                document.querySelectorAll('.collapsible-content').forEach(function (content) {
+                    content.style.display = 'block'; // Show content
+                });
+            }
+
+            // Function to collapse all collapsible elements
+            function collapseAll() {
+                document.querySelectorAll('.collapsible-content').forEach(function (content) {
+                    content.style.display = 'none'; // Hide content
+                });
+            }
+
+            // Add event listeners to the buttons
+            expandAllButton.addEventListener('click', expandAll);
+            collapseAllButton.addEventListener('click', collapseAll);
+        });
+
     </script>
