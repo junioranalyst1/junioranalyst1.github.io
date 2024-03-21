@@ -15,21 +15,29 @@
 
         #map {
             position: absolute;
-            left: 25%;
             top: 0;
+            right: 0;
             bottom: 0;
-            width: 75%;
+            left: 25%;
+            /* Adjust this to match the initial width of the sidebar */
+            transition: left 0s;
+            /* Smooth transition for map adjustment */
         }
 
-        .map-overlay {
+        #sidebar {
+            padding-right: 10px;
             position: absolute;
-            width: 23.85%;
             top: 0;
             bottom: 0;
             left: 0;
-            font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
-            background-color: #efefef;
-            z-index: 1;
+            width: 25%;
+            /* Adjust the initial width of the sidebar here */
+            overflow-x: hidden;
+            /* Prevents horizontal scroll on the sidebar */
+            z-index: 2;
+            /* Ensures that the sidebar is above the map */
+            transition: width 0s;
+            /* Smooth transition for sidebar width */
         }
 
         .map-overlay input {
@@ -71,12 +79,15 @@
             /* Enable resizing in both directions */
             min-width: 200px;
             /* Minimum width */
-            min-height: 100px;
+            min-height: 200px;
             /* Minimum height */
             max-width: none;
             /* Remove maximum width restriction */
-            max-height: none;
+            width: 300px;
+            height: 50vh;
+            max-height: 80vh;
             /* Remove maximum width restriction */
+            overflow-y: auto;
         }
 
 
@@ -120,7 +131,7 @@
         .popup-flex-container {
             display: flex;
             flex-direction: column;
-            height: 400px;
+            /* height: 400px; */
             /* Set the initial fixed height */
             position: relative;
             scroll-behavior: auto;
@@ -137,8 +148,8 @@
         }
 
         .popup-content-details {
-            flex: 1 1 auto;
-            overflow: scroll;
+            flex: 1;
+            overflow: auto;
             scroll-behavior: auto;
         }
 
@@ -238,20 +249,17 @@
         }
 
         .drag-handle {
-            background-color: #ccc;
-            /* Visible handle color */
-            cursor: ew-resize;
+            right: 0;
             position: absolute;
             top: 0;
             bottom: 0;
-            left: 23.85%;
-            /* This should match the initial width of your sidebar */
-            width: 20px;
-            /* Adjust the thickness of the handle here */
-            z-index: 10;
-            /* Ensure it's above other elements */
-            border-left: 17px solid white;
-            /* Adds a left border */
+            left: 25.8%;
+            /* Adjust this to match the initial width of the sidebar */
+            width: 10px;
+            /* Width of the draggable area */
+            cursor: ew-resize;
+            z-index: 3;
+            /* Ensures that the drag handle is above the sidebar and map */
         }
 
         .drag-handle::after {
@@ -549,20 +557,43 @@
             document.removeEventListener('mouseup', onMouseUp);
         }
 
+        function updateLayout(xPosition) {
+            const sidebarWidth = xPosition;
+            const mapContainer = document.getElementById('map');
 
-        function onMouseMove(e) {
-            if (!isDragging) return;
+            // Ensure the sidebar width does not exceed the window boundaries
+            const maxSidebarWidth = window.innerWidth - 50; // Keep some space for the map view
+            const newSidebarWidth = Math.min(window.innerWidth - 50, Math.max(xPosition, 50)); // Adjust this to your minimum and maximum sidebar width
 
-            const newWidth = e.clientX; // Get the new width based on the cursor position
+            sidebar.style.width = `${newSidebarWidth}px`;
+            dragHandle.style.left = `${newSidebarWidth}px`;
+            mapContainer.style.left = `${newSidebarWidth}px`;
 
-            // Update sidebar width
-            sidebar.style.width = `${newWidth}px`;
-
-            // Ensure drag handle moves with the sidebar's right edge
-            dragHandle.style.left = `${newWidth - dragHandle.offsetWidth}px`; // Adjust this calculation based on your actual HTML/CSS setup
+            // Ensure the map adjusts to the new layout
+            map.resize(); // Adjust the map size
         }
 
+        
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            updateLayout(e.clientX);
 
+            const sidebarWidth = e.clientX; // Get the new width based on the cursor position
+            const maxWidth = window.innerWidth; // Get the total width of the window
+
+            // Calculate the new width for the map container
+            const mapWidth = maxWidth - sidebarWidth;
+
+            // Update sidebar width
+            sidebar.style.width = `${sidebarWidth}px`;
+
+            // Update map container width
+            const mapContainer = document.getElementById('map');
+            mapContainer.style.width = `${mapWidth}px`;
+
+            // Adjust the map view to the new container size
+            map.resize();
+        }
 
         function makePopupDraggable(popupElement) {
             const popupResizeHandle = document.createElement('div');
