@@ -405,13 +405,9 @@
     <div id="map"></div>
 
     <script>
-
-
         mapboxgl.accessToken = 'pk.eyJ1IjoianVuaW9yYW5hbHlzdDEiLCJhIjoiY2xranA1eHV5MHlpczNja2dieDlkZzJiciJ9.CN5Qa40PM2IMpwlyBAFTVA';
 
         const isMobile = window.innerWidth < 600;
-
-
 
         const map = new mapboxgl.Map({
             container: 'map',
@@ -487,8 +483,6 @@
 
         let isDragging = false;
 
-
-
         // ... (rest of your existing script before the drag functionality)
 
         // Function to handle the dragging for both touch and mouse events
@@ -518,9 +512,6 @@
             // Ensure the map adjusts to the new layout
             map.resize(); // Adjust the map size
         }
-
-
-
 
         // Touch event listeners START
         document.getElementById('drag-handle').addEventListener('touchstart', function (event) {
@@ -573,7 +564,7 @@
             map.resize(); // Adjust the map size
         }
 
-        
+
         function onMouseMove(e) {
             if (!isDragging) return;
             updateLayout(e.clientX);
@@ -671,6 +662,22 @@
                 }
             });
         }
+
+        function setupPopupContent(taxonomy) {
+            const popupContent = document.createElement('div');
+            // Generate popup innerHTML using taxonomy data
+            // popupContent.innerHTML = ...
+
+            // Return the fully constructed popup content element
+            return popupContent;
+        }
+
+        // Centralized function to toggle display of collapsible content
+        function toggleCollapsibleContent(content, show) {
+            content.style.display = show ? 'block' : 'none';
+            // Update arrow symbol if you have an arrow indicator in your design
+        }
+
         const esgTaxonomies = [
             {
                 latitude: 56.1304,
@@ -1021,10 +1028,74 @@
             className: 'custom-popup' // Add this classf
         });
 
+        // Note: Ensure the function 'filterPopupContent' is defined elsewhere in your code to handle the input search functionality.
+
+
+        map.on('load', () => {
+            map.addSource('esgTaxonomies', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'FeatureCollection',
+                    'features': esgTaxonomies.map(taxonomy => featureToGeoJSON(taxonomy))
+                }
+            });
+            map.addLayer({
+                'id': 'taxonomy-markers',
+                'type': 'circle',
+                'source': 'esgTaxonomies',
+                'paint': {
+                    'circle-color': 'green',
+                    'circle-radius': 10,
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': 'white'
+                }
+            });
+
+            // Only keep one definition of filterPopupContent function
+            function filterPopupContent(inputElement) {
+                const searchValue = inputElement.value.toLowerCase();
+                const contentDiv = inputElement.nextElementSibling;
+                const textElements = contentDiv.querySelectorAll('.popup-text');
+                textElements.forEach(element => {
+                    if (searchValue) {
+                        element.innerHTML = highlightText(element.textContent, searchValue);
+                    } else {
+                        element.innerHTML = element.textContent;
+                    }
+                });
+            }
+
+            map.on('movestart', () => {
+                map.setFilter('taxonomy-markers', ['has', 'name', false]);
+            });
+            map.on('moveend', () => {
+                const features = map.queryRenderedFeatures({ layers: ['taxonomy-markers'] });
+                if (features) {
+                    renderListings(features);
+                }
+            });
+
+        });
+
+        // Define setupIndividualCollapsibles at the top level of your script
+        function setupIndividualCollapsibles(popupContent) {
+            const headers = popupContent.querySelectorAll('.collapsible-header');
+            headers.forEach(header => {
+                header.addEventListener('click', function () {
+                    const content = this.nextElementSibling;
+                    const isVisible = content.style.display === 'block';
+                    content.style.display = isVisible ? 'none' : 'block';
+                    const arrow = this.querySelector('.collapsible-arrow');
+                    arrow.textContent = isVisible ? '▼' : '▲'; // Toggle arrow symbol
+                });
+            });
+        }
+
         map.on('click', 'taxonomy-markers', (e) => {
             const taxonomyName = e.features[0].properties.name;
             const taxonomy = esgTaxonomies.find(item => item.name === taxonomyName);
             if (!taxonomy) return;
+
             const popupContent = document.createElement('div');
             popupContent.innerHTML = `
             <div class="popup-flex-container">
@@ -1181,8 +1252,11 @@
                 </div>
             </div>
         `;
+
+            setupIndividualCollapsibles(popupContent);
+
             // Immediately append popupContent to the popup to ensure it's part of the DOM
-            const popup = new mapboxgl.Popup({
+            new mapboxgl.Popup({
                 closeButton: false,
                 closeOnClick: true
             })
@@ -1194,7 +1268,6 @@
             setupPopupButtons(popupContent);
         });
 
-        // Function to setup event listeners for the "Expand All" and "Collapse All" buttons within the popup
         function setupPopupButtons(popupContent) {
             const expandAllBtn = popupContent.querySelector('#expand-all');
             const collapseAllBtn = popupContent.querySelector('#collapse-all');
@@ -1206,66 +1279,19 @@
             collapseAllBtn.addEventListener('click', function () {
                 toggleCollapsible(popupContent, false); // Collapse all
             });
+
+            // Setup individual collapsible sections
+            setupIndividualCollapsibles(popupContent);
         }
 
-        // Function to toggle the display of collapsible content
         function toggleCollapsible(popupContent, expand) {
             const collapsibles = popupContent.querySelectorAll('.collapsible-content');
-            collapsibles.forEach(collapsible => {
+            const arrows = popupContent.querySelectorAll('.collapsible-arrow');
+            collapsibles.forEach((collapsible, index) => {
                 collapsible.style.display = expand ? 'block' : 'none';
-                // Also, you might want to adjust the arrow symbol or class based on expand/collapse
+                arrows[index].textContent = expand ? '▲' : '▼'; // Adjust arrow symbol
             });
         }
-
-        // Note: Ensure the function 'filterPopupContent' is defined elsewhere in your code to handle the input search functionality.
-
-
-        map.on('load', () => {
-            map.addSource('esgTaxonomies', {
-                'type': 'geojson',
-                'data': {
-                    'type': 'FeatureCollection',
-                    'features': esgTaxonomies.map(taxonomy => featureToGeoJSON(taxonomy))
-                }
-            });
-            map.addLayer({
-                'id': 'taxonomy-markers',
-                'type': 'circle',
-                'source': 'esgTaxonomies',
-                'paint': {
-                    'circle-color': 'green',
-                    'circle-radius': 10,
-                    'circle-stroke-width': 2,
-                    'circle-stroke-color': 'white'
-                }
-            });
-
-            // Only keep one definition of filterPopupContent function
-            function filterPopupContent(inputElement) {
-                const searchValue = inputElement.value.toLowerCase();
-                const contentDiv = inputElement.nextElementSibling;
-                const textElements = contentDiv.querySelectorAll('.popup-text');
-                textElements.forEach(element => {
-                    if (searchValue) {
-                        element.innerHTML = highlightText(element.textContent, searchValue);
-                    } else {
-                        element.innerHTML = element.textContent;
-                    }
-                });
-            }
-
-            map.on('movestart', () => {
-                map.setFilter('taxonomy-markers', ['has', 'name', false]);
-            });
-            map.on('moveend', () => {
-                const features = map.queryRenderedFeatures({ layers: ['taxonomy-markers'] });
-                if (features) {
-                    renderListings(features);
-                }
-            });
-
-
-        });
 
         document.addEventListener('DOMContentLoaded', function () {
             // Assuming there are buttons with IDs 'expand-all' and 'collapse-all'
@@ -1286,9 +1312,48 @@
                 });
             }
 
+            // Ensure this function is called after the popup is added to the map and popupContent is part of the DOM
+            function setupCollapsibles(popupContent) {
+                const collapsibleHeaders = popupContent.querySelectorAll('.collapsible-header');
+                collapsibleHeaders.forEach(header => {
+                    header.addEventListener('click', function () {
+                        const content = this.nextElementSibling; // Assuming content directly follows header
+                        const isVisible = content.style.display === 'block';
+                        content.style.display = isVisible ? 'none' : 'block';
+
+                        // Optional: Toggle arrow direction or class
+                        const arrow = this.querySelector('.collapsible-arrow');
+                        arrow.textContent = isVisible ? '▼' : '▲'; // Adjust symbols or toggle class as needed
+                    });
+                });
+            }
+
+            // This function needs to be called after the popup content is fully loaded into the DOM.
+
             // Add event listeners to the buttons
             expandAllButton.addEventListener('click', expandAll);
             collapseAllButton.addEventListener('click', collapseAll);
         });
 
+        // Using event delegation for dynamic popup elements
+        document.addEventListener('click', function (event) {
+            // Collapsible headers toggle
+            if (event.target.classList.contains('collapsible-header')) {
+                const content = event.target.nextElementSibling;
+                toggleCollapsibleContent(content, content.style.display !== 'block');
+            }
+
+            // Expand all and collapse all buttons
+            const popupContent = event.target.closest('.custom-popup');
+            if (popupContent) {
+                if (event.target.id === 'expand-all') {
+                    popupContent.querySelectorAll('.collapsible-content').forEach(content => toggleCollapsibleContent(content, true));
+                } else if (event.target.id === 'collapse-all') {
+                    popupContent.querySelectorAll('.collapsible-content').forEach(content => toggleCollapsibleContent(content, false));
+                }
+            }
+        });
+
     </script>
+
+</body>
