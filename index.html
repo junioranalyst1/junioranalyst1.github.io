@@ -105,28 +105,51 @@
             }
 
             .mapboxgl-popup-content {
-                overflow: auto;
-                /* Adjust content overflow as needed */
-                resize: both;
-                /* Enable resizing in both directions */
-                min-width: 200px;
-                /* Minimum width */
-                min-height: 100px;
-                /* Minimum height */
-                max-width: none;
-                /* Remove maximum width restriction */
-                overflow-x: hidden;
+                width: 250px;
+                /* Adjust to suit your design */
+                height: auto;
+                /* Adjust if a fixed height is needed */
+                font-size: 12px;
+                /* Adjust text size as needed */
+                overflow-y: auto;
+                /* Allows scrolling within the popup */
             }
 
-
-            /* Additionally, if there are specific elements within your popups that cause horizontal scrolling, target them with a similar approach */
-            .custom-popup-element {
-                max-width: none;
-                overflow-x: hidden;
+            .mapboxgl-popup .mapboxgl-popup-tip {
+                display: none;
+                /* Optionally hide the tip arrow on smaller screens */
             }
 
+            /* Further adjustments to internal popup content as necessary */
+            .popup-flex-container,
+            .search-bar-container,
+            .popup-content-details {
+                padding: 5px;
+                /* Smaller padding for mobile */
+            }
 
-            /* Any other specific adjustments for mobile */
+            .collapsible-header,
+            .result-item {
+                font-size: 12px;
+                /* Smaller font size for titles and results */
+            }
+
+            /* Adjust button sizes */
+            .expand-all-btn,
+            .collapse-all-btn {
+                padding: 5px 10px;
+                /* Smaller buttons */
+                font-size: 12px;
+                /* Smaller text on buttons */
+            }
+
+            /* Adjust input field size */
+            .popup-flex-container input[type="text"] {
+                padding: 5px;
+                /* Smaller padding for the input field */
+                margin-bottom: 5px;
+                /* Adjusted margin */
+            }
         }
 
 
@@ -375,7 +398,8 @@
             max-width: none;
             /* Remove maximum width restriction */
             overflow-x: hidden;
-            word-wrap: break-word; /* This ensures that long words do not cause horizontal overflow */
+            word-wrap: break-word;
+            /* This ensures that long words do not cause horizontal overflow */
             overflow-wrap: break-word;
         }
 
