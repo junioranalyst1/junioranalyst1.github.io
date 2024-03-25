@@ -88,6 +88,7 @@
             max-height: 80vh;
             /* Remove maximum width restriction */
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
 
@@ -114,6 +115,7 @@
                 /* Minimum height */
                 max-width: none;
                 /* Remove maximum width restriction */
+                overflow-x: hidden;
             }
 
 
@@ -136,21 +138,39 @@
             position: relative;
             scroll-behavior: auto;
             max-width: none;
+            background-color: white;
         }
 
         .popup-flex-container input[type="text"] {
             flex: 0 0 auto;
             width: 100%;
             padding: 5px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            margin-top: 15px;
             box-sizing: border-box;
             scroll-behavior: auto;
+            background-color: white;
         }
 
         .popup-content-details {
             flex: 1;
-            overflow: auto;
+            overflow-y: auto;
             scroll-behavior: auto;
+            padding: 10px;
+            padding-top: 0px;
+            /* Add padding-top equal to the height of the search bar to prevent content from hiding under it */
+        }
+
+        .search-container {
+            padding: 10px;
+            background-color: white;
+            /* Ensures the background is solid */
+            z-index: 100;
+            /* Ensures that the search bar is above the content. Adjust if necessary. */
+            position: sticky;
+            top: 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            /* Adds shadow for depth */
         }
 
         .highlighted {
@@ -337,13 +357,13 @@
             /* Visible handle */
         }
 
-
         .mapboxgl-popup-content {
-            padding-top: 20px;
+            padding-top: 0px;
             /* Make sure this is at least as tall as the resize handle */
             padding-right: 20px;
             /* Make sure this is at least as wide as the resize handle */
-
+            background-color: white;
+            /* Or any other color that fits the design */
             overflow: auto;
             /* Adjust content overflow as needed */
             resize: both;
@@ -354,6 +374,9 @@
             /* Minimum height */
             max-width: none;
             /* Remove maximum width restriction */
+            overflow-x: hidden;
+            word-wrap: break-word; /* This ensures that long words do not cause horizontal overflow */
+            overflow-wrap: break-word;
         }
 
         .expand-all-btn,
@@ -369,6 +392,21 @@
         .expand-all-btn:hover,
         .collapse-all-btn:hover {
             background-color: #0056b3;
+        }
+
+        .popup-search-container {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            /* Ensures it stays above other content */
+            background-color: white;
+            /* Or any color that fits your design */
+            padding: 10px;
+            /* Adjust padding as needed */
+            border-bottom: 1px solid #ccc;
+            /* Optional: adds a subtle line to distinguish the search bar */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* Optional: adds shadow for depth */
         }
     </style>
 </head>
@@ -386,7 +424,7 @@
             <option value="linkpolicyobjectives">Link Policy Objectives</option>
             <option value="sectorscovered">Sectors Covered</option>
             <option value="approachtoeligibility">Approach to Eligibility</option>
-            <option value="purpose">Purpose</option>
+            <option value="Purpose">Purpose</option>
             <option value="DonosignificantharmDNHS">Do No Significant Harm (DNHS)</option>
             <option value="Additionalguidance">Additional guidance</option>
             <option value="otherusefuldocuments">Other useful documents</option>
@@ -455,14 +493,16 @@
 
                     let detailElement; // This will either be a link or a text span
 
-                    // Check if the content starts with 'https://'
-                    if (taxonomy[selectedCategory].startsWith('https://')) {
-                        // Create an anchor element for the hyperlink
+                    // Regular expression to match both http and https
+                    const httpRegex = /^https?:\/\//;
+
+                    if (httpRegex.test(taxonomy[selectedCategory])) {
+                        // The content starts with 'http://' or 'https://'
                         detailElement = document.createElement('a');
                         detailElement.href = taxonomy[selectedCategory]; // Set the URL
                         detailElement.target = '_blank'; // Open in a new tab
                     } else {
-                        // Create a span for plain text
+                        // The content does not start with 'http://' or 'https://'
                         detailElement = document.createElement('span');
                     }
 
@@ -709,7 +749,7 @@
                 longitude: -74.02986,
                 name: 'Taxonomía Verde de Colombia',
                 link: 'https://www.taxonomiaverde.gov.co/webcenter/portal/TaxonomaVerde',
-                yearinitiated: '13 April 2022',
+                yearinitiated: '2022',
                 mostrecentupdate: '-',
                 mandatedinlaworvoluntary: 'The taxonomy is voluntary and has no legal status.  However, there are regulations in place to support its implementation, although these do not impose specific disclosure obligations.  The SFC has issued external circulars (or rules0 that encourage the use of the taxonomy in labelling of green bonds, ESG portfolio labelling and voluntary labelling of pension fund). SFC’s Centro de Estudios Regulatorios (cerlatam.com)',
                 developer: 'Developed by the Government institutions – The Colombian Superintendency of Finance (SFC), the Ministry of finance (MHCP), The National Planning Department (DNP), the Department of Statistics of Colombia (DANE) and the Ministry of Environment and Sustainable Development (MADS) oversaw the taxonomy development process.',
@@ -734,7 +774,7 @@
                 longitude: 19.5033,
                 name: 'Sustainable Finance Taxonomy',
                 link: 'https://ec.europa.eu/sustainable-finance-taxonomy/taxonomy-compass/the-compass',
-                yearinitiated: '2020, 2020 with some provisions effective from 1 Jan 2022',
+                yearinitiated: '2020, with some provisions effective from Jan 2022',
                 mostrecentupdate: '2023 <br> <br> The EU Regulation on the establishment of a framework to facilitate sustainable investment (the Taxonomy Regulation) was published in the Official Journal of the EU (the OJ) on 22 June 2020. <br> <br>. As the legal instrument used is a Regulation, it became directly applicable in EU Member States and did not require further national implementation processes to be implemented (unlike a Directive). <br> <br> The European Commission adopted a phased approach to allow companies more time to comply with disclosure requirements. <br> <br> Some provision applied from 1 January 2022. These include provisions on: -	Climate Change Mitigation -	Climate Change Adaptation <br> <br> As such in the first year of application, nonfinancial undertakings only had to report the portion — in terms of turnover, CapEx and OpEx — of their eligible economic activities with regard to the Climate Delegated Act. <br> <br> For the 2022 reporting year, the obligation was extended to alignment: nonfinancial undertakings are now required to report the share of turnover, CapEx and OpEx related to taxonomy-eligible and taxonomy-aligned activities with regard to the Climate Delegated Act. This disclosure must include three tables for CapEx, OpEx and turnover, indicating the share of taxonomy-aligned activities, taxonomy-eligible but not aligned activities and non-taxonomy-eligible activities. In contrast financial undertakings were granted a two-year phase-in period for reporting, with alignment KPIs becoming mandatory in fiscal year 2023 — as financial undertakings will have to rely on data disclosed by their nonfinancial and financial counterparties to develop the indicators mandated by the Delegated Act. <br> <br> Additionally, from the reporting year 2022, credit institutions are required to disclose the proportion of their trading portfolio and on-demand interbank loans in their total assets. The insurers are to disclose the proportion of taxonomy-eligible and taxonomy-ineligible nonlife insurance and reinsurance economic activities. <br> <br> Further provisions came into effect on 1 January 2023: -	Sustainable use and protection of water and marine resources; -	Transition to a circular economy; -	Pollution prevention and control; -	Protection and restoration of biodiversity and ecosystems <br> <br> EU Regulations and Directives (known as Level 1, as described above regarding the Regulation) are often supplemented in more detail with what are and Level 2 measures that have a different legislative procedure to enable quicker amendment (Regulated Technical Standards/ Technical Screening Criteria (TSC) and Guidance. <br> <br> Following its publication, work started on the underlying Level 2 measures needed to supplement it. <br> <br> These relate to Key Performance Indicators - KPIs: Measures to specify the content, methodology and presentation of key performance indicators (KPIs) that non-financial undertakings and asset managers must disclose; and establishing TSCs to determine the conditions under which a given economic activity should be considered to be contributing substantially to an environmental objective. On 10 December 2021, the Commission Delegated Regulation (EU) 2021/2178 (the Disclosures Delegated Act) was published in the OJ. Its provisions took effect on 1 January 2022. The Disclosures Delegated Act was amended by the Complementary Delegated Act (EU) 2022/1214 (the CDA), which was published in the OJ on 15 July 2022 and which came into force on 1 January 2023. <br> <br> The CDA made amendments specifying disclosures to be made in respect of certain nuclear energy and fossil gas activities. <br> <br> Technical Screening Criteria (TSCs) <br> <br> (a) Climate Delegated Act On 9 December 2021, the Commission Delegated Regulation (EU) 2021/2139 (the Climate Delegated Act was published in the OJ). Its provisions took effect on 1 January 2022. <br> <br> The  Climate Delegated Act which came into force on 1 January 2023 was amended on 15 July 2022 through the Complementary Delegated Act (EU) 2022/1214 adding TSC by which certain nuclear energy and fossil gas activities which were classified as transitional activities which contribute to climate change mitigation under the Taxonomy Regulation. <br> <br> On 27 June 2023, the Commission published a draft Delegated Regulation, Annex I (Climate change mitigation) and Annex II (Climate change adaptation) to amend the Climate Delegated Act – these cover economic activities that make a substantial contribution to the environmental objectives of <br> (i)	climate change mitigation and <br> (ii)	climate change adaptation but which have not been previously included in the taxonomy (notably some manufacturing activities in relation to key components for low carbon transport and electrical equipment). <br> <br> Also on 27 June 2023, the Commission published a draft Taxonomy Environmental Delegated Act (adopted in the OJ following EP and Council review), which would establish Technical Screening Criteria (TSC) for activities that can make a substantial contribution to the environmental objectives for which TSCs are not already available. <br> <br> The purpose of this was to: <br> -	transition to a circular economy; -	control or protection and restoration of biodiversity; -	pollution prevention; and -	use and protection of water and marine resources. <br> <br> For further guidance on  TSC Notices the Commission sets out draft responses to FAQs on TSCs for the environmental objectives of climate change mitigation and climate change adaptation, contained in the Climate Delegated Act. <br> <br> The Environmental Delegated Act also had the effect of amending the Disclosures Delegated Act, to clarify the disclosure obligations for the additional activities and supplement the requirements in Article 10 of the Disclosures Delegated Act. Further targeted amendments to the Taxonomy Climate Delegated Act set out economic activities that make a substantial contribution to the environmental objectives of both climate change mitigation and climate change adaptation but which have not been previously included in the taxonomy. <br> <br> The Measures applied as of January 2024. <br> <br> Further Interpretation and Guidance provided is included. <br> <br> Areas of future work: Macel Haag European Commission Directorate-General for Financial Stability, Financial Services and Capital Markets Union Deputy Director has indicated that the key priority will be a simplified Taxonomy for SMEs. Other areas to watch will be the extension of biodiversity and further work on social taxonomy (December 2023 at CEPs think tank event on usability of the taxonomy see Utube video of the event). <br> <br> The current Taxonomy leaves a wide variety of economic activities non-classified. Some stakeholders may incorrectly interpret this non-classification or “not green” as a negative signal and there are fears that finance would simply disappear for activities that fall outside the current Taxonomy. To resolve this, An Extended Taxonomy could be designed to include intermediate as the current Regulation is not intended to define any category of activity other than “environmentally sustainable”; performing activities, significantly harmful activities and always significantly harmful activities.  The Commission would however need to identify further economic activities with no technological possibility of improving their environmental performance which was not in the scope of the existing taxonomy. The report published in March 2022 sets out how this could be done and the implications of this. Platform on Sustainable Finance’s report on environmental transition taxonomy (europa.eu). <br> <br> As noted by the report “Since the proposal of the Taxonomy Regulation (TR), it has become increasingly clear that many Taxonomy users could benefit from an extension of the Taxonomy framework to introduce other performance levels. Doing so would enhance transparency and would also allow for more nuanced decision-making and lend wider support to an environmental transition in the whole economy. The Taxonomy Regulation requires the European Commission to deliver a report on the possible extension of the Taxonomy to other economic activities. <br> <br> The report constitutes the Platform’s input to the European Commission’s forthcoming report under Article 26, and provides clear signals to and recommendations for financial markets and other stakeholders. <br> <br> The Platform has considered the premises, issues and options for and against extending the environmental Taxonomy ‘beyond green’ to classify a wider range of economic activities. We have consulted with a wide variety of potential Taxonomy users and published our interim report for public feedback. In addition to this work on an extended 6 environmental Taxonomy: focussing on the six environmental objectives and on transition across all sectors of the economy, the Platform has recently published its proposal for an EU Social Taxonomy, which is compatible and coherent with … this report.” The report however will be considered by the European Commission as it continues the way forward.',
                 mandatedinlaworvoluntary: 'Mandated <br> <br> See above for the technical details and links to the various legislative measures used and an explanation of what they do.',
                 developer: 'The European Commission. <br> <br> The Technical Expert Group (TEG) on sustainable finance: The TEG commenced its work in July 2018. Its 35 members from civil society, academia, business and the finance sector, as well as additional members and observers from EU and international public bodies work both through formal plenaries and subgroup meetings for each workstream. To allow it to conclude its technical work and retain the expertise before the future Platform on sustainable finance is set up, the mandate of the TEG was extended until 30 September 2020 following which it was replaced by the Platform on Sustainable Finance. <br> <br> The Platform on Sustainable Finance plays a key role in enabling such cooperation by bringing together the best expertise on sustainability from the corporate and public sector, from industry as well as academia, civil society and the financial industry. The Platform was first established in October 2020, for a two-year mandate that ended in October 2022. A call for applications for the selection of members for the new mandate of the Platform was launched in October 2022 and the new composition of the Platform was announced on 8 February 2023. The first meeting will be held on 7 March 2023. <br> <br> Member States expert group on sustainable finance (E03603): The European Commission adopted its “Action Plan on Financing Sustainable Growth” on 8 March 2018 which proposed concrete actions that will help achieve the Sustainable Development Goals and the objectives set in the Paris Agreement on Climate Change drawing on the recommendations of the High-Level Expert Group on Sustainable Finance. In its Action Plan, the European Commission has called on other players, such as EU Member States, to support implementing sustainable finance actions and promote the transformation in their territories. For this purpose, the European Commission is creating a dedicated EU Member States expert group on sustainable finance.',
@@ -783,7 +823,7 @@
                 latitude: 23.685,
                 longitude: 90.3563,
                 name: 'Sustainable Finance Policy for Banks and Financial Institutions',
-                link: 'http://documents1.worldbank.org/curated/en/953011593410423487/pdf/Developing-a-National-Green-Taxonomy-A-World-Bank-Guide.pdf ; https://www.bb.org.bd/mediaroom/circulars/gbcrd/dec312020sfd05.pdf',
+                link: 'https://www.bb.org.bd/mediaroom/circulars/gbcrd/dec312020sfd05.pdf',
                 yearinitiated: '2017',
                 mostrecentupdate: '2020 <br> <br> The policy includes Sustainable Finance Taxonomy along with a country perspective Green Taxonomy. The Green Finance and the Sustainable Linked Finance taxonomies together comprise the Sustainable Finance Taxonomy. Comprehensive lists of green products/projects/initiatives and identical areas of sustainable linked finance have been included in the policy. This policy provides clarity and guidance to identify green and Sustainable Linked Finance.',
                 mandatedinlaworvoluntary: '...',
@@ -808,7 +848,7 @@
                 latitude: 35.8617,
                 longitude: 104.1954,
                 name: 'Green Bond Endorsed-Projects Catalogue and Green Industry Guidance Catalogue',
-                link: 'http://www.pbc.gov.cn/goutongjiaoliu/113456/113469/4236341/index.html and https://www.ndrc.gov.cn/fggz/hjyzy/stwmjs/201903/t20190305_1220625.html',
+                link: 'http://www.pbc.gov.cn/goutongjiaoliu/113456/113469/4236341/index.html',
                 yearinitiated: '2015 and 2019',
                 mostrecentupdate: '2018 and - <br> <br> This revised catalogue unifies domestic standards on green bonds and green projects. Aiming to be more aligned with international standards and Chinas carbon neutrality goal, it removes clean use of coal and other fossil energy sources and adopts a do no significant harm principle. <br> <br> Green Industry Guidance Catalogue: The guidance is meant to enact policies to strengthen green industry development, and combine catalogue with investment, pricing, and financial policies to improve catalogue practicality. It covers 6 main industrial sectors: energy conservation and environmental protection, clean production, clean energy, ecological environment, green upgrade of infrastructure and green service. Clean coal is still in this version.',
                 mandatedinlaworvoluntary: '...',
@@ -1099,7 +1139,10 @@
             const popupContent = document.createElement('div');
             popupContent.innerHTML = `
             <div class="popup-flex-container">
-                <input type="text" onkeyup="filterPopupContent(this)" placeholder="Search...">
+                <div class="search-bar-container" style="position: sticky; top: 0; z-index: 2; background: white;">
+                    <input type="text" onkeyup="filterPopupContent(this)" placeholder="Search...">
+                </div>
+                <div class="popup-content-details" style="overflow-y: auto; max-height: calc(100% - 60px);"> <!-- Adjust max-height as needed -->    
                 <div class="popup-content-details">
                     <strong>Country:</strong> <span class="popup-text">${taxonomy.country}</span><br><br>
                     <strong>Year Initiated:</strong> <span class="popup-text">${taxonomy.yearinitiated}</span><br><br>
@@ -1249,6 +1292,7 @@
                             <p>${taxonomy.Sectorclassification}</p>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
         `;
