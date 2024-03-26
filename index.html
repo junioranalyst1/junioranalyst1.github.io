@@ -734,7 +734,7 @@
             if (!term) return text; // No term to highlight
             const escapedTerm = escapeRegExp(term);
             const regex = new RegExp(`(${escapedTerm})`, 'gi');
-            return text.replace(regex, `<mark>$1</mark>`);
+            return text.replace(regex, `<mark class="highlight">$1</mark>`);
         }
 
         // Call this function whenever you need to update the popup content based on the search term
@@ -747,20 +747,6 @@
             });
         }
 
-        // Add event listener to the search input
-        function setupSearchInput(popupContent) {
-            const searchInput = popupContent.querySelector('input[type="text"]');
-            searchInput.addEventListener('input', function () {
-                filterPopupContent(this.value, popupContent);
-            });
-        }
-
-        // Make sure to call setupSearchInput after the popup content is appended to the popup
-
-        // Call this function after popup content is appended to the popup
-        setupSearchInput(popupContent);
-
-        // Remove this part
         document.addEventListener('input', function (event) {
             if (event.target.type === 'text') {
                 filterPopupContent(event.target);
