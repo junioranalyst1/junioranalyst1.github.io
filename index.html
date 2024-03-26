@@ -115,7 +115,10 @@
                 overflow-y: auto;
                 /* Allows scrolling within the popup */
                 overflow-x: hidden;
-                padding: 0px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                /* Replace #ccc with the color of your choice */
+
             }
 
             .mapboxgl-popup .mapboxgl-popup-tip {
@@ -148,11 +151,13 @@
 
             /* Adjust input field size */
             .popup-flex-container input[type="text"] {
-                padding: 0px;
+                padding: 5px;
                 /* Smaller padding for the input field */
+                margin: 0;
+                /* Adjust if necessary */
                 margin-bottom: 5px;
-                width: 100%;
-                /* Full width of the container */
+                width: calc(100% - 10px);
+                /* Adjust based on total padding and borders */
                 max-width: 230px;
                 /* Maximum width of the search bar */
                 /* Adjusted margin */
@@ -160,6 +165,9 @@
                 /* Adjust font size if necessary */
                 height: 30px;
                 /* Reduce the height of the search bar if needed */
+                border: 1px solid #ccc;
+                /* Same color as the popup border */
+
             }
         }
 
@@ -1171,9 +1179,17 @@
             searchInput.addEventListener('keyup', function () {
                 filterPopupContent(this);
             });
-            searchInput.addEventListener('click', function () {
-                this.focus(); // Focus on the input when it's clicked
-            });
+
+            // Only add the click listener if not on a mobile device
+            if (!isMobileDevice()) {
+                searchInput.addEventListener('click', function () {
+                    this.focus(); // Focus on the input when it's clicked
+                });
+            }
+        }
+
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
         }
 
         map.on('click', 'taxonomy-markers', (e) => {
