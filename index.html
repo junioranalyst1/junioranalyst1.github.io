@@ -102,13 +102,15 @@
                 /* Hide overflow */
                 width: 90%;
                 /* Or any other width you prefer */
-                max-width: none;
+                max-width: 320px;
                 /* This can help if there is a max-width set by default */
             }
 
             .mapboxgl-popup-content {
-                width: 320px;
-                /* Adjust to suit your design */
+                width: 90%;
+                /* Or any other width you prefer */
+                max-width: 320px;
+                /* This can help if there is a max-width set by default */
                 height: 370px;
                 /* Adjust if a fixed height is needed */
                 font-size: 10px;
@@ -1200,10 +1202,6 @@
                 // Call the filter function with the current value of the input and the popup content
                 filterPopupContent(this.value, popupContent);
             });
-        }
-
-        function isMobileDevice() {
-            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1);
         }
 
         map.on('click', 'taxonomy-markers', (e) => {
