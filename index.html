@@ -493,6 +493,8 @@
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoianVuaW9yYW5hbHlzdDEiLCJhIjoiY2xranA1eHV5MHlpczNja2dieDlkZzJiciJ9.CN5Qa40PM2IMpwlyBAFTVA';
 
+        const isMobile = window.innerWidth < 600;
+
         const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v12',
