@@ -109,7 +109,7 @@
             .mapboxgl-popup-content {
                 width: 90%;
                 /* Or any other width you prefer */
-                max-width: 340px;
+                max-width: 360px;
                 /* This can help if there is a max-width set by default */
                 height: 370px;
                 /* Adjust if a fixed height is needed */
@@ -1411,16 +1411,7 @@
 
                 // Create popup content HTML
                 const popupContent = document.createElement('div');
-                popupContent.innerHTML = `
-        <!-- Your popup HTML structure here -->
-        <div class="search-bar-container">
-            <input type="text" placeholder="Search...">
-        </div>
-        <div class="popup-content-details">
-            <!-- Your popup details here -->
-        </div>
-    `;
-
+                popupContent.innerHTML = 
                 // Set up search input functionality
                 setupSearchInput(popupContent);
 
