@@ -112,8 +112,10 @@
                 overflow-y: auto;
                 /* Allows scrolling within the popup */
                 overflow-x: hidden;
-                padding: 5px;
-                /* Consistent padding */
+                padding-top: 0;
+                /* Remove padding from the top */
+                padding-left: 0;
+                /* Remove padding from the left */
                 border: none;
                 /* Replace #ccc with the color of your choice */
             }
@@ -533,6 +535,8 @@
 
                     let detailElement; // This will either be a link or a text span
 
+
+
                     // Regular expression to match both http and https
                     const httpRegex = /^https?:\/\//;
 
@@ -737,12 +741,13 @@
             return text.replace(regex, `<mark class="highlight">$1</mark>`);
         }
 
-        // Call this function whenever you need to update the popup content based on the search term
         function filterPopupContent(searchValue, popupContent) {
-            // Apply highlighting to all .popup-text elements within the popup content
-            const textElements = popupContent.querySelectorAll('.popup-text');
+            // Apply highlighting to all text elements within the popup content, including collapsible sections
+            const textElements = popupContent.querySelectorAll('.popup-text, .collapsible-content');
+
             textElements.forEach(element => {
                 const text = element.textContent || element.innerText;
+                // If a search term is provided, highlight it; otherwise, reset to the original text
                 element.innerHTML = searchValue ? highlightText(text, searchValue) : text;
             });
         }
@@ -1183,17 +1188,14 @@
         }
 
         function setupSearchInput(popupContent) {
+            // Find the search input within the popup content
             const searchInput = popupContent.querySelector('input[type="text"]');
+
+            // Attach an event listener to handle the input event
             searchInput.addEventListener('input', function () {
+                // Call the filter function with the current value of the input and the popup content
                 filterPopupContent(this.value, popupContent);
             });
-
-            // Only add the click listener if not on a mobile device
-            if (!isMobileDevice()) {
-                searchInput.addEventListener('click', function () {
-                    this.focus(); // Focus on the input when it's clicked
-                });
-            }
         }
 
         function isMobileDevice() {
@@ -1209,7 +1211,7 @@
             popupContent.innerHTML = `
             <div class="popup-flex-container">
                 <div class="search-bar-container" style="position: sticky; top: 0; z-index: 2; background: white;">
-                    <input type="text" onkeyup="filterPopupContent(this)" placeholder="Search...">
+                    <input type="text" placeholder="Search...">
                 </div>
                 <div class="popup-content-details" style="overflow-y: auto; max-height: calc(100% - 60px);"> <!-- Adjust max-height as needed -->    
                 <div class="popup-content-details">
@@ -1366,6 +1368,18 @@
             </div>
         `;
 
+            // Set up search input functionality
+            setupSearchInput(popupContent);
+
+            // Show the popup
+            new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: true
+            })
+                .setLngLat(e.lngLat)
+                .setDOMContent(popupContent)
+                .addTo(map);
+
             // Generate and insert popup content with search functionality
             function generatePopupContent(taxonomy) {
                 const popupContent = document.createElement('div');
@@ -1390,15 +1404,23 @@
                 return popupContent;
             }
 
-            // When a marker is clicked, show the popup with searchable content
             map.on('click', 'taxonomy-markers', (e) => {
-                // Find the taxonomy data for the clicked marker
-                const taxonomyName = e.features[0].properties.name;
-                const taxonomy = esgTaxonomies.find(item => item.name === taxonomyName);
-                if (!taxonomy) return;
+                // ... (other code to generate popup content)
 
-                // Generate the popup content
-                const popupContent = generatePopupContent(taxonomy);
+                // Create popup content HTML
+                const popupContent = document.createElement('div');
+                popupContent.innerHTML = `
+        <!-- Your popup HTML structure here -->
+        <div class="search-bar-container">
+            <input type="text" placeholder="Search...">
+        </div>
+        <div class="popup-content-details">
+            <!-- Your popup details here -->
+        </div>
+    `;
+
+                // Set up search input functionality
+                setupSearchInput(popupContent);
 
                 // Show the popup
                 new mapboxgl.Popup({
