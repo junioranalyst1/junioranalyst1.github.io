@@ -151,9 +151,15 @@
                 padding: 0px;
                 /* Smaller padding for the input field */
                 margin-bottom: 5px;
+                width: 100%;
+                /* Full width of the container */
+                max-width: 250px;
+                /* Maximum width of the search bar */
                 /* Adjusted margin */
-                font-size: 10px; /* Adjust font size if necessary */
-                height: 30px; /* Reduce the height of the search bar if needed */
+                font-size: 10px;
+                /* Adjust font size if necessary */
+                height: 30px;
+                /* Reduce the height of the search bar if needed */
             }
         }
 
@@ -1160,6 +1166,16 @@
             });
         }
 
+        function setupSearchInput(popupContent) {
+            const searchInput = popupContent.querySelector('input[type="text"]');
+            searchInput.addEventListener('keyup', function () {
+                filterPopupContent(this);
+            });
+            searchInput.addEventListener('click', function () {
+                this.focus(); // Focus on the input when it's clicked
+            });
+        }
+
         map.on('click', 'taxonomy-markers', (e) => {
             const taxonomyName = e.features[0].properties.name;
             const taxonomy = esgTaxonomies.find(item => item.name === taxonomyName);
@@ -1169,7 +1185,7 @@
             popupContent.innerHTML = `
             <div class="popup-flex-container">
                 <div class="search-bar-container" style="position: sticky; top: 0; z-index: 2; background: white;">
-                    <input type="text" onkeyup="filterPopupContent(this)" placeholder="Search...">
+                    <input type="text" placeholder="Search...">
                 </div>
                 <div class="popup-content-details" style="overflow-y: auto; max-height: calc(100% - 60px);"> <!-- Adjust max-height as needed -->    
                 <div class="popup-content-details">
