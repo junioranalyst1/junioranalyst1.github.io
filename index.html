@@ -106,7 +106,7 @@
             }
 
             .mapboxgl-popup-content {
-                width: 270px;
+                width: 280px;
                 /* Adjust to suit your design */
                 height: 370px;
                 /* Adjust if a fixed height is needed */
@@ -156,10 +156,10 @@
                 padding-left: 2px;
                 padding-right:2px;
                 /* Smaller padding for the input field */
-                margin: 0;
-                /* Adjust if necessary */
                 margin-bottom: 5px;
-                width: calc(100% - 10px);
+                margin-left: 2px;
+                margin-right: 2px;
+                width: calc(100% - 5px);
                 /* Adjust based on total padding and borders */
                 max-width: 220px;
                 /* Maximum width of the search bar */
@@ -1204,7 +1204,7 @@
             popupContent.innerHTML = `
             <div class="popup-flex-container">
                 <div class="search-bar-container" style="position: sticky; top: 0; z-index: 2; background: white;">
-                    <input type="text" placeholder="Search...">
+                    <input type="text" onkeyup="filterPopupContent(this)" placeholder="Search...">
                 </div>
                 <div class="popup-content-details" style="overflow-y: auto; max-height: calc(100% - 60px);"> <!-- Adjust max-height as needed -->    
                 <div class="popup-content-details">
