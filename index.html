@@ -98,11 +98,8 @@
             .mapboxgl-popup {
                 display: flex;
                 flex-direction: column;
-                overflow: auto;
-                /* Add scrolling if content is larger than the pop-up */
-                max-width: none;
-                /* Remove maximum width restriction */
-                overflow-x: hidden;
+                overflow: hidden;
+                /* Hide overflow */
             }
 
             .mapboxgl-popup-content {
@@ -115,11 +112,10 @@
                 overflow-y: auto;
                 /* Allows scrolling within the popup */
                 overflow-x: hidden;
-                padding-left: 0px;
-                padding-right: 8px;
+                padding: 10px;
+                /* Consistent padding */
                 border: 1px solid #ccc;
                 /* Replace #ccc with the color of your choice */
-
             }
 
             .mapboxgl-popup .mapboxgl-popup-tip {
@@ -127,12 +123,12 @@
                 /* Optionally hide the tip arrow on smaller screens */
             }
 
-            /* Further adjustments to internal popup content as necessary */
+            /* Adjustments to internal popup content */
             .popup-flex-container,
             .search-bar-container,
             .popup-content-details {
-                padding: 0px;
-                /* Smaller padding for mobile */
+                padding: 10px;
+                /* Consistent padding for mobile */
             }
 
             .collapsible-header,
@@ -144,33 +140,32 @@
             /* Adjust button sizes */
             .expand-all-btn,
             .collapse-all-btn {
-                padding-left: 0px 5px;
-                padding-right: 0px 5px;
-                /* Smaller buttons */
+                padding: 5px;
+                /* Adjust padding for buttons */
                 font-size: 10px;
                 /* Smaller text on buttons */
+                width: auto;
+                /* Ensure the buttons are not too wide */
+                margin: 0 2px;
+                /* Add some margin between buttons */
             }
 
             /* Adjust input field size */
             .popup-flex-container input[type="text"] {
-                padding-left: 2px;
-                padding-right:2px;
-                /* Smaller padding for the input field */
+                padding: 5px;
+                /* Adjust padding for the input field */
                 margin-bottom: 5px;
-                margin-left: 2px;
-                margin-right: 2px;
-                width: calc(100% - 5px);
-                /* Adjust based on total padding and borders */
+                /* Margin below the search bar */
+                width: calc(100% - 10px);
+                /* Adjust width based on padding */
                 max-width: 220px;
                 /* Maximum width of the search bar */
-                /* Adjusted margin */
                 font-size: 10px;
                 /* Adjust font size if necessary */
                 height: 30px;
-                /* Reduce the height of the search bar if needed */
+                /* Adjust height of the search bar if needed */
                 border: 1px solid #ccc;
                 /* Same color as the popup border */
-
             }
         }
 
@@ -221,6 +216,7 @@
         .highlighted {
             background-color: yellow;
         }
+
 
         .feature-filter {
             padding: 10px;
@@ -729,27 +725,33 @@
                 }
             };
         }
-        function highlightText(content, term) {
-            const highlightStartTag = "<span class='highlighted'>";
-            const highlightEndTag = "</span>";
-            const newText = content.replace(new RegExp(`(${term})`, 'ig'), `${highlightStartTag}$1${highlightEndTag}`);
-            return newText;
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
         }
 
-        function filterPopupContent(inputElement) {
-            const searchValue = inputElement.value.toLowerCase();
-            const contentDiv = inputElement.nextElementSibling;
-            const textElements = contentDiv.querySelectorAll('.popup-text, .collapsible-content');
+        function highlightText(text, term) {
+            const escapedTerm = escapeRegExp(term);
+            const searchTerm = new RegExp(escapedTerm, 'gi');
+            return text.replace(searchTerm, `<span class="highlighted">$1</span>`);
+        }
+
+        // Call this function whenever you need to update the popup content based on the search term
+        function filterPopupContent(searchValue, popupContent) {
+            // Apply highlighting to all .popup-text elements within the popup content
+            const textElements = popupContent.querySelectorAll('.popup-text');
             textElements.forEach(element => {
-                if (searchValue) {
-                    element.innerHTML = highlightText(element.textContent, searchValue);
-                } else {
-                    element.innerHTML = element.textContent;
-                }
+                const text = element.textContent || element.innerText;
+                element.innerHTML = searchValue ? highlightText(text, searchValue) : text;
             });
         }
 
-        function setupPopupContent(taxonomy) {
+        document.addEventListener('input', function (event) {
+            if (event.target.type === 'text') {
+                filterPopupContent(event.target);
+            }
+        });
+
+        function generatePopupContent(taxonomy) {
             const popupContent = document.createElement('div');
             // Generate popup innerHTML using taxonomy data
             // popupContent.innerHTML = ...
@@ -1163,24 +1165,25 @@
 
         });
 
-        // Define setupIndividualCollapsibles at the top level of your script
         function setupIndividualCollapsibles(popupContent) {
-            const headers = popupContent.querySelectorAll('.collapsible-header');
-            headers.forEach(header => {
+            const collapsibleHeaders = popupContent.querySelectorAll('.collapsible-header');
+            collapsibleHeaders.forEach(header => {
                 header.addEventListener('click', function () {
-                    const content = this.nextElementSibling;
+                    const content = this.nextElementSibling; // Assuming content directly follows header
                     const isVisible = content.style.display === 'block';
                     content.style.display = isVisible ? 'none' : 'block';
+
+                    // Optional: Toggle arrow direction or class
                     const arrow = this.querySelector('.collapsible-arrow');
-                    arrow.textContent = isVisible ? '▼' : '▲'; // Toggle arrow symbol
+                    arrow.textContent = isVisible ? '▼' : '▲'; // Adjust symbols or toggle class as needed
                 });
             });
         }
 
         function setupSearchInput(popupContent) {
             const searchInput = popupContent.querySelector('input[type="text"]');
-            searchInput.addEventListener('keyup', function () {
-                filterPopupContent(this);
+            searchInput.addEventListener('input', function() {
+                filterPopupContent(this.value, popupContent);
             });
 
             // Only add the click listener if not on a mobile device
@@ -1413,6 +1416,11 @@
                 });
             }
 
+            document.querySelector('input[type="text"]').addEventListener('input', function () {
+                filterPopupContent(this);
+            });
+
+
             // Function to collapse all collapsible elements
             function collapseAll() {
                 document.querySelectorAll('.collapsible-content').forEach(function (content) {
@@ -1443,22 +1451,25 @@
             collapseAllButton.addEventListener('click', collapseAll);
         });
 
-        // Using event delegation for dynamic popup elements
+        // Use event delegation to handle events for dynamic popup elements
         document.addEventListener('click', function (event) {
-            // Collapsible headers toggle
-            if (event.target.classList.contains('collapsible-header')) {
-                const content = event.target.nextElementSibling;
-                toggleCollapsibleContent(content, content.style.display !== 'block');
-            }
-
-            // Expand all and collapse all buttons
-            const popupContent = event.target.closest('.custom-popup');
-            if (popupContent) {
-                if (event.target.id === 'expand-all') {
-                    popupContent.querySelectorAll('.collapsible-content').forEach(content => toggleCollapsibleContent(content, true));
-                } else if (event.target.id === 'collapse-all') {
-                    popupContent.querySelectorAll('.collapsible-content').forEach(content => toggleCollapsibleContent(content, false));
-                }
+            if (event.target.matches('.collapsible-header')) {
+                // Handle collapsible toggling
+                const header = event.target;
+                const content = header.nextElementSibling;
+                content.style.display = content.style.display === 'block' ? 'none' : 'block';
+            } else if (event.target.matches('#expand-all')) {
+                // Handle expanding all collapsibles
+                const popupContent = event.target.closest('.popup-content-details');
+                popupContent.querySelectorAll('.collapsible-content').forEach(content => {
+                    content.style.display = 'block';
+                });
+            } else if (event.target.matches('#collapse-all')) {
+                // Handle collapsing all collapsibles
+                const popupContent = event.target.closest('.popup-content-details');
+                popupContent.querySelectorAll('.collapsible-content').forEach(content => {
+                    content.style.display = 'none';
+                });
             }
         });
 
