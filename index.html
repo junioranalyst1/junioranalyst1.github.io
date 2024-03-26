@@ -103,7 +103,7 @@
             }
 
             .mapboxgl-popup-content {
-                width: 280px;
+                width: 320px;
                 /* Adjust to suit your design */
                 height: 370px;
                 /* Adjust if a fixed height is needed */
@@ -112,9 +112,9 @@
                 overflow-y: auto;
                 /* Allows scrolling within the popup */
                 overflow-x: hidden;
-                padding: 0px;
+                padding: 10px;
                 /* Consistent padding */
-                border: 0px solid #ccc;
+                border: 1px solid #ccc;
                 /* Replace #ccc with the color of your choice */
             }
 
@@ -127,7 +127,7 @@
             .popup-flex-container,
             .search-bar-container,
             .popup-content-details {
-                padding: 0px;
+                padding: 10px;
                 /* Consistent padding for mobile */
             }
 
@@ -140,21 +140,21 @@
             /* Adjust button sizes */
             .expand-all-btn,
             .collapse-all-btn {
-                padding: 0px;
+                padding: 5px;
                 /* Adjust padding for buttons */
                 font-size: 10px;
                 /* Smaller text on buttons */
                 width: auto;
                 /* Ensure the buttons are not too wide */
-                margin: 0px;
+                margin: 0 2px;
                 /* Add some margin between buttons */
             }
 
             /* Adjust input field size */
             .popup-flex-container input[type="text"] {
-                padding: 0px;
+                padding: 5px;
                 /* Adjust padding for the input field */
-                margin-bottom: 0px;
+                margin-bottom: 5px;
                 /* Margin below the search bar */
                 width: calc(100% - 10px);
                 /* Adjust width based on padding */
@@ -164,7 +164,7 @@
                 /* Adjust font size if necessary */
                 height: 30px;
                 /* Adjust height of the search bar if needed */
-                border: 0px solid #ccc;
+                border: 1px solid #ccc;
                 /* Same color as the popup border */
             }
         }
@@ -751,7 +751,7 @@
             }
         });
 
-        function generatePopupContent(taxonomy) {
+        function PopupContent(taxonomy) {
             const popupContent = document.createElement('div');
             // Generate popup innerHTML using taxonomy data
             // popupContent.innerHTML = ...
